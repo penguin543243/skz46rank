@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>櫻坂46成員推し順位決定戰</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         :root { --sakura: #f19ec2; --sakura-dark: #e0629b; --white: #ffffff; }
@@ -46,7 +47,7 @@
         .result-thumb { width: 50px; height: 65px; object-fit: cover; border-radius: 6px; background: #f9f9f9; }
         .result-name { font-weight: bold; font-size: 1.1rem; }
         
-        /* 複製按鈕專用樣式 */
+        /* 複製與儲存按鈕專用樣式 */
         .copy-btn { width: 100%; margin-top: 20px; padding: 15px; border: none; border-radius: 15px; background: var(--sakura-dark); color: white; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(224, 98, 155, 0.3); }
         .copy-btn:hover { background: #ff4d94; }
         .copy-btn:active { transform: scale(0.98); }
@@ -98,10 +99,13 @@
     </div>
 
     <div id="result-zone">
-        <h2 style="color: var(--sakura-dark); text-align: center;">🌸 我的櫻坂46推し排名 🌸</h2>
-        <div class="divider"></div>
-        <div id="rank-list"></div>
+        <div id="capture-area">
+            <h2 style="color: var(--sakura-dark); text-align: center; margin-top: 10px;">🌸 我的櫻坂46推し排名 🌸</h2>
+            <div class="divider"></div>
+            <div id="rank-list"></div>
+        </div>
         <button class="copy-btn" onclick="copyResult()">複製文字結果</button>
+        <button class="copy-btn" style="background: #e0629b; margin-top: 10px;" onclick="saveAsImage()">儲存排名圖片</button>
         <button class="restart-btn" onclick="location.reload()">重新開始</button>
     </div>
 </div>
@@ -119,51 +123,51 @@
         "守屋茜": "https://static.wikia.nocookie.net/akb48/images/9/9e/Moriya_Akane_S46_1st.jpg",
         "渡辺梨加": "https://static.wikia.nocookie.net/akb48/images/9/9f/Watanabe_Rika_S46_1st.jpg",
         "渡邉理佐": "https://static.wikia.nocookie.net/akb48/images/7/7e/Watanabe_Risa_S46_1st.jpg",
-        "井上梨名": "https://sakurazaka46.com/images/14/381/072f076deebeffbbaf22a1038b2cb/400_320_102400.jpg",
-        "遠藤光莉": "https://sakurazaka46.com/images/14/857/d0120b9769f3d70674079f22bfb93/400_320_102400.jpg",
-        "大園玲": "https://sakurazaka46.com/images/14/24b/9ec4f53fd6bdff10e11184718fdc6/400_320_102400.jpg",
-        "大沼晶保": "https://sakurazaka46.com/images/14/12f/8c6160d77812688b7e5f29b89119c/400_320_102400.jpg",
-        "幸阪茉里乃": "https://sakurazaka46.com/images/14/2f9/1e452e7822839ea7c313a6f72beca/400_320_102400.jpg",
-        "關有美子": "https://static.wikia.nocookie.net/akb48/images/5/5d/Seki_Yumiko_S46_1st.jpg",
-        "武元唯衣": "https://sakurazaka46.com/images/14/fde/33bda495de83cc021bc791ee1f815/400_320_102400.jpg",
-        "田村保乃": "https://sakurazaka46.com/images/14/d78/15b07c7fcfa61ee38717e3ead9190/400_320_102400.jpg",
-        "藤吉夏鈴": "https://sakurazaka46.com/images/14/ac8/bdf305ca6fe3150253309e3162b38/400_320_102400.jpg",
-        "增本綺良": "https://sakurazaka46.com/images/14/b0b/6c435985fee683a63a4e111d08c66/400_320_102400.jpg",
+        "井上梨名": "https://static.wikia.nocookie.net/akb48/images/5/59/Inoue_Rina_S46_Oct_2025.jpg",
+        "遠藤光莉": "https://static.wikia.nocookie.net/akb48/images/c/ca/Endo_Hikari_S46_Feb_2026.jpg",
+        "大園玲": "https://static.wikia.nocookie.net/akb48/images/f/f2/Ozono_Rei_S46_Feb_2026.jpg",
+        "大沼晶保": "https://static.wikia.nocookie.net/akb48/images/e/e4/Onuma_Akiho_S46_Feb_2026.jpg",
+        "幸阪茉里乃": "https://static.wikia.nocookie.net/akb48/images/d/dc/Kousaka_Marino_S46_Feb_2026.jpg",
+        "関有美子": "https://static.wikia.nocookie.net/akb48/images/5/5d/Seki_Yumiko_S46_1st.jpg",
+        "武元唯衣": "https://static.wikia.nocookie.net/akb48/images/c/c4/Takemoto_Yui_S46_Feb_2026.jpg",
+        "田村保乃": "https://static.wikia.nocookie.net/akb48/images/2/26/Tamura_Hono_S46_Feb_2026.jpg",
+        "藤吉夏鈴": "https://static.wikia.nocookie.net/akb48/images/7/77/Fujiyoshi_Karin_S46_Feb_2026.jpg",
+        "増本綺良": "https://static.wikia.nocookie.net/akb48/images/9/9c/Masumoto_Kira_S46_Feb_2026.jpg",
         "松平璃子": "https://static.wikia.nocookie.net/akb48/images/2/2d/Matsudaira_Riko_S46_1st.jpg",
-        "松田里奈": "https://sakurazaka46.com/images/14/751/48de20a8332db5f761ac1277f5e55/400_320_102400.jpg",
-        "森田ひかる": "https://sakurazaka46.com/images/14/653/60ba6e0df07c5a0f5dedf11db6186/400_320_102400.jpg",
-        "守屋麗奈": "https://sakurazaka46.com/images/14/ca6/ea887c53d101dcd1ec2154334e1b1/400_320_102400.jpg",
-        "山﨑天": "https://sakurazaka46.com/images/14/d79/76fa08f7e62c5b15ff4ba200ba199/400_320_102400.jpg",
-        "石森璃花": "https://sakurazaka46.com/images/14/cd8/11c3587bb87a5ddc9e4e63f941bf1/400_320_102400.jpg",
-        "遠藤理子": "https://sakurazaka46.com/images/14/b22/3713b6987a8e214d6fe5a57854634/400_320_102400.jpg",
-        "小田倉麗奈": "https://sakurazaka46.com/images/14/263/20608a9c45d8afddc128ae180ab71/400_320_102400.jpg",
-        "小島凪紗": "https://sakurazaka46.com/images/14/44a/4e7a8c8ab86faba15404dffa70f48/400_320_102400.jpg",
-        "谷口愛季": "https://sakurazaka46.com/images/14/025/cbcd2e8333953131b14d1e1b85ffe/400_320_102400.jpg",
-        "中嶋優月": "https://sakurazaka46.com/images/14/7e9/80345b3421394aac9b2ce72b0c6f5/400_320_102400.jpg",
-        "的野美青": "https://sakurazaka46.com/images/14/b8b/bfc2cd7717c347546f5d88dcc5521/400_320_102400.jpg",
-        "向井純葉": "https://sakurazaka46.com/images/14/e82/320adae04d6b88c9ec11f065b8d9e/400_320_102400.jpg",
-        "村井優": "https://sakurazaka46.com/images/14/f66/d3ee063660b09ae19c9ae6faddb3b/400_320_102400.jpg",
-        "村山美羽": "https://sakurazaka46.com/images/14/8cd/9eae10b884ede12c4445a0958b70f/400_320_102400.jpg",
-        "山下瞳月": "https://sakurazaka46.com/images/14/f38/3108b02a46500ce0d6093234a2dc0/400_320_102400.jpg",
-        "淺井戀乃未": "https://sakurazaka46.com/images/14/571/5f8ff9c3868beec870183b2d31c3a/400_320_102400.jpg",
-        "稲熊ひな": "https://sakurazaka46.com/images/14/399/dd195ad9a0d52b851a86c1dedbf6c/400_320_102400.jpg",
-        "勝又春": "https://sakurazaka46.com/images/14/d1b/9c4d1ed47ac4c11e75c9eb9627a2a/400_320_102400.jpg",
-        "佐藤愛桜": "https://sakurazaka46.com/images/14/73f/cb69cae91954986017e139dabeef4/400_320_102400.jpg",
-        "中川智尋": "https://sakurazaka46.com/images/14/eeb/7f18c42636b09a6d7d497071a549f/400_320_102400.jpg",
-        "松本和子": "https://sakurazaka46.com/images/14/ecc/679134dea971e03bce13c7f41f82e/400_320_102400.jpg",
-        "目黑陽色": "https://sakurazaka46.com/images/14/343/e99d35233cec8a3d6aeaaf71e598e/400_320_102400.jpg",
-        "山川宇衣": "https://sakurazaka46.com/images/14/c45/b723790606854ed9be6119727ea7e/400_320_102400.jpg",
-        "山田桃實": "https://sakurazaka46.com/images/14/3f0/982a8a5790f0825271e4224658219/400_320_102400.jpg"
+        "松田里奈": "https://static.wikia.nocookie.net/akb48/images/9/9e/Matsuda_Rina_S46_Feb_2026.jpg",
+        "森田ひかる": "https://static.wikia.nocookie.net/akb48/images/7/71/Morita_Hikaru_S46_Feb_2026.jpg",
+        "守屋麗奈": "https://static.wikia.nocookie.net/akb48/images/3/3c/Moriya_Rena_S46_Feb_2026.jpg",
+        "山﨑天": "https://static.wikia.nocookie.net/akb48/images/a/ad/Yamasaki_Ten_S46_Feb_2026.jpg",
+        "石森璃花": "https://static.wikia.nocookie.net/akb48/images/0/00/Ishimori_Rika_S46_Feb_2026.jpg",
+        "遠藤理子": "https://static.wikia.nocookie.net/akb48/images/6/68/Endo_Riko_S46_Feb_2026.jpg",
+        "小田倉麗奈": "https://static.wikia.nocookie.net/akb48/images/8/8c/Odakura_Reina_S46_Feb_2026.jpg",
+        "小島凪紗": "https://static.wikia.nocookie.net/akb48/images/c/c5/Kojima_Nagisa_S46_Feb_2026.jpg",
+        "谷口愛季": "https://static.wikia.nocookie.net/akb48/images/6/6b/Taniguchi_Airi_S46_Feb_2026.jpg",
+        "中嶋優月": "https://static.wikia.nocookie.net/akb48/images/0/02/Nakashima_Yuzuki_S46_Feb_2026.jpg",
+        "的野美青": "https://static.wikia.nocookie.net/akb48/images/4/45/Matono_Mio_S46_Feb_2026.jpg",
+        "向井純葉": "https://static.wikia.nocookie.net/akb48/images/2/22/Mukai_Itoha_S46_Feb_2026.jpg",
+        "村井優": "https://static.wikia.nocookie.net/akb48/images/f/f8/Murai_Yu_S46_Feb_2026.jpg",
+        "村山美羽": "https://static.wikia.nocookie.net/akb48/images/a/a2/Murayama_Miu_S46_Feb_2026.jpg",
+        "山下瞳月": "https://static.wikia.nocookie.net/akb48/images/d/d9/Yamashita_Shizuki_S46_Feb_2026.jpg",
+        "浅井恋乃未": "https://static.wikia.nocookie.net/akb48/images/0/01/Asai_Konomi_S46_Feb_2026.jpg",
+        "稲熊ひな": "https://static.wikia.nocookie.net/akb48/images/8/87/Inaguma_Hina_S46_Feb_2026.jpg",
+        "勝又春": "https://static.wikia.nocookie.net/akb48/images/0/05/Katsumata_Haru_S46_Feb_2026.jpg",
+        "佐藤愛桜": "https://static.wikia.nocookie.net/akb48/images/9/9b/Sato_Neo_S46_Feb_2026.jpg",
+        "中川智尋": "https://static.wikia.nocookie.net/akb48/images/7/73/Nakagawa_Chihiro_S46_Feb_2026.jpg",
+        "松本和子": "https://static.wikia.nocookie.net/akb48/images/5/58/Matsumoto_Wako_S46_Feb_2026.jpg",
+        "目黒陽色": "https://static.wikia.nocookie.net/akb48/images/8/8f/Meguro_Hiiro_S46_Feb_2026.jpg",
+        "山川宇衣": "https://static.wikia.nocookie.net/akb48/images/0/0e/Yamakawa_Ui_S46_Feb_2026.jpg",
+        "山田桃実": "https://static.wikia.nocookie.net/akb48/images/a/ac/Yamada_Momomi_S46_Feb_2026.jpg"
     };
 
     const memberData = {
         "1": ["上村莉菜", "尾関梨香", "小池美波", "小林由依", "齋藤冬優花", "菅井友香", "土生瑞穂", "原田葵", "守屋茜", "渡辺梨加", "渡邉理佐"],
-        "2": ["井上梨名", "遠藤光莉", "大園玲", "大沼晶保", "幸阪茉里乃", "關有美子", "武元唯衣", "田村保乃", "藤吉夏鈴", "增本綺良", "松平璃子", "松田里奈", "森田ひかる", "守屋麗奈", "山﨑天"],
+        "2": ["井上梨名", "遠藤光莉", "大園玲", "大沼晶保", "幸阪茉里乃", "関有美子", "武元唯衣", "田村保乃", "藤吉夏鈴", "増本綺良", "松平璃子", "松田里奈", "森田ひかる", "守屋麗奈", "山﨑天"],
         "3": ["石森璃花", "遠藤理子", "小田倉麗奈", "小島凪紗", "谷口愛季", "中嶋優月", "的野美青", "向井純葉", "村井優", "村山美羽", "山下瞳月"],
-        "4": ["淺井戀乃未", "稲熊ひな", "勝又春", "佐藤愛桜", "中川智尋", "松本和子", "目黑陽色", "山川宇衣", "山田桃實"]
+        "4": ["浅井恋乃未", "稲熊ひな", "勝又春", "佐藤愛桜", "中川智尋", "松本和子", "目黒陽色", "山川宇衣", "山田桃実"]
     };
 
-    const activeNames = ["井上梨名", "遠藤光莉", "大園玲", "大沼晶保", "幸阪茉里乃", "武元唯衣", "田村保乃", "藤吉夏鈴", "增本綺良", "松田里奈", "森田ひかる", "守屋麗奈", "山﨑天", "石森璃花", "遠藤理子", "小田倉麗奈", "小島凪紗", "谷口愛季", "中嶋優月", "的野美青", "向井純葉", "村井優", "村山美羽", "山下瞳月", "淺井戀乃未", "稲熊ひな", "勝又春", "佐藤愛桜", "中川智尋", "松本和子", "目黑陽色", "山川宇衣", "山田桃實"];
+    const activeNames = ["井上梨名", "遠藤光莉", "大園玲", "大沼晶保", "幸阪茉里乃", "武元唯衣", "田村保乃", "藤吉夏鈴", "増本綺良", "松田里奈", "森田ひかる", "守屋麗奈", "山﨑天", "石森璃花", "遠藤理子", "小田倉麗奈", "小島凪紗", "谷口愛季", "中嶋優月", "的野美青", "向井純葉", "村井優", "村山美羽", "山下瞳月", "浅井恋乃未", "稲熊ひな", "勝又春", "佐藤愛桜", "中川智尋", "松本和子", "目黒陽色", "山川宇衣", "山田桃実"];
 
     let activeMembers = [], resolveFunc, totalComparisons = 0;
 
@@ -256,7 +260,6 @@
         });
     }
 
-    // 複製功能實作
     function copyResult() {
         const items = document.querySelectorAll('.rank-item');
         let text = "🌸 我的櫻坂46推し排名 🌸\n";
@@ -266,16 +269,41 @@
         });
         text += "\n測驗網址： " + window.location.href;
 
-        // 使用較新的 API 進行複製
         navigator.clipboard.writeText(text).then(() => {
             alert("已成功複製排名文字！快去貼給朋友看吧～");
         }).catch(err => {
             alert("複製失敗，請手動截圖分享");
         });
     }
+
+    // 新增：儲存圖片功能
+    function saveAsImage() {
+        const target = document.getElementById('capture-area');
+        const container = document.querySelector('.container');
+        
+        // 暫時微調樣式以確保截圖美觀
+        html2canvas(target, {
+            backgroundColor: "#ffffff",
+            scale: 2, // 提升清晰度
+            useCORS: true, // 嘗試處理跨域圖片
+            logging: false,
+            width: target.offsetWidth,
+            windowWidth: target.offsetWidth
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Sakurazaka46_Ranking.png';
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        }).catch(err => {
+            alert("儲存圖片失敗，可能是瀏覽器權限限制，請改用手動截圖。");
+            console.error(err);
+        });
+    }
 </script>
 </body>
 </html>
+
+
 
 
 
