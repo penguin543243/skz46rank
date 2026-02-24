@@ -4,72 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>櫻坂46成員推し順位決定戰</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* 核心修正：全域設定盒模型 */
         * { box-sizing: border-box; }
-
         :root { --sakura: #f19ec2; --sakura-dark: #e0629b; --white: #ffffff; }
         body { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang TC", "Microsoft JhengHei", sans-serif; background: #fff5f8; display: flex; justify-content: center; padding: 20px; color: #444; }
         .container { max-width: 550px; width: 100%; background: var(--white); padding: 40px 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(224, 98, 155, 0.2); text-align: center; }
-        
         .main-title { color: var(--sakura-dark); font-size: 1.8rem; font-weight: 900; margin-bottom: 10px; }
         .divider { width: 50px; height: 4px; background: var(--sakura); margin: 20px auto; border-radius: 2px; }
         
-        /* 快速選擇按鈕 */
+        /* 快速選擇 */
         .quick-select-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px; }
         .q-btn { font-size: 0.75rem; padding: 6px 12px; border: 1px solid var(--sakura); color: var(--sakura-dark); border-radius: 20px; cursor: pointer; background: white; transition: 0.2s; }
         .q-btn:hover { background: var(--sakura); color: white; }
         .q-btn.active-status { border-color: #ff4d94; color: #ff4d94; font-weight: bold; }
         .q-btn.clear { border-color: #ccc; color: #888; }
 
-        /* 選擇區 */
         .selection-zone { text-align: left; margin-bottom: 25px; background: #fefefe; border: 1px solid #eee; border-radius: 15px; padding: 15px; max-height: 350px; overflow-y: auto; }
         .gen-title { font-size: 0.85rem; font-weight: bold; color: #aaa; margin: 15px 0 8px 5px; border-bottom: 1px dashed #eee; padding-bottom: 3px; }
         .member-checkbox { display: inline-flex; align-items: center; width: 45%; margin: 5px 2%; cursor: pointer; font-size: 0.9rem; }
         .member-checkbox input { margin-right: 8px; accent-color: var(--sakura-dark); }
 
-        /* 模式按鈕 */
         .menu-btn { width: 100%; padding: 20px; margin: 10px 0; border: 2px solid #f0f0f0; border-radius: 15px; cursor: pointer; background: white; transition: 0.3s; text-align: left; }
         .menu-btn:hover { border-color: var(--sakura); background: #fff9fb; transform: translateY(-2px); }
         .menu-btn h3 { margin: 0; color: var(--sakura-dark); font-size: 1.1rem; }
         .menu-btn p { margin: 5px 0 0; font-size: 0.8rem; color: #888; }
 
-        /* 對決區 */
         #battle-zone { display: none; }
         .progress-text { font-size: 0.85rem; color: #999; margin-bottom: 12px; }
         .bar-bg { width: 100%; height: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 35px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--sakura); width: 0%; transition: 0.4s; }
         
         .cards { display: flex; gap: 15px; align-items: stretch; justify-content: center; }
-        .card { 
-            flex: 1; padding: 15px; border: 2px solid #f5f5f5; border-radius: 20px; 
-            cursor: pointer; background: #fff; transition: all 0.2s; 
-            display: flex; flex-direction: column; align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-            min-width: 0;
-        }
+        .card { flex: 1; padding: 15px; border: 2px solid #f5f5f5; border-radius: 20px; cursor: pointer; background: #fff; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; min-width: 0; }
         .card:hover { border-color: var(--sakura); transform: scale(1.03); color: var(--sakura-dark); }
-        .member-img { 
-            width: 100%; aspect-ratio: 3/4; background: #f9f9f9; border-radius: 12px; 
-            margin-bottom: 15px; object-fit: cover; display: none; 
-        }
+        .member-img { width: 100%; aspect-ratio: 3/4; background: #f9f9f9; border-radius: 12px; margin-bottom: 15px; object-fit: cover; display: none; }
         .member-name { font-weight: bold; font-size: 1.2rem; word-break: break-all; }
-        .vs-label { font-weight: 900; color: #eee; font-style: italic; font-size: 1.2rem; display: flex; align-items: center; }
 
-        /* 結果區與分享按鈕 */
         #result-zone { display: none; text-align: left; }
-        .rank-item { padding: 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px; background: white; }
+        .rank-item { padding: 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px; }
         .rank-item b { width: 30px; color: var(--sakura-dark); font-size: 1.1rem; text-align: center; }
         .result-thumb { width: 50px; height: 65px; object-fit: cover; border-radius: 6px; background: #f9f9f9; }
         .result-name { font-weight: bold; font-size: 1.1rem; }
         
-        .share-group { display: flex; gap: 10px; margin-top: 20px; }
-        .share-btn { flex: 1; padding: 15px; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-copy { background: #ffe0eb; color: #e0629b; }
-        .btn-save { background: var(--sakura-dark); color: white; }
-        .share-btn:active { transform: scale(0.95); }
-        
+        /* 複製按鈕專用樣式 */
+        .copy-btn { width: 100%; margin-top: 20px; padding: 15px; border: none; border-radius: 15px; background: var(--sakura-dark); color: white; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(224, 98, 155, 0.3); }
+        .copy-btn:hover { background: #ff4d94; }
+        .copy-btn:active { transform: scale(0.98); }
+
         .restart-btn { width: 100%; margin-top: 10px; padding: 15px; border: none; border-radius: 15px; background: #f0f0f0; color: #666; font-weight: bold; cursor: pointer; }
     </style>
 </head>
@@ -79,7 +60,6 @@
     <div id="menu-zone">
         <h1 class="main-title">櫻坂46成員<br>推し順位決定戰</h1>
         <div class="divider"></div>
-        
         <p style="font-size: 0.9rem; margin-bottom: 10px; color: #666;">① 挑選參與對決的成員：</p>
         <div class="quick-select-group">
             <div class="q-btn active-status" onclick="selectActiveOnly()"> 現役成員</div>
@@ -89,9 +69,7 @@
             <div class="q-btn" onclick="selectGen('4')">四期生</div>
             <div class="q-btn clear" onclick="selectGen('none')">全部取消</div>
         </div>
-
         <div class="selection-zone" id="member-selectors"></div>
-
         <p style="font-size: 0.9rem; margin-bottom: 10px; color: #666;">② 選擇排序模式：</p>
         <div class="menu-btn" onclick="startApp('full')">
             <h3>完美主義模式</h3>
@@ -111,7 +89,7 @@
                 <img id="img-a" class="member-img" src="" alt="">
                 <div id="opt-a" class="member-name"></div>
             </div>
-            <div class="vs-label">VS</div>
+            <div style="font-weight:900; color:#eee; font-style:italic; display:flex; align-items:center;">VS</div>
             <div class="card" onclick="submit(1)">
                 <img id="img-b" class="member-img" src="" alt="">
                 <div id="opt-b" class="member-name"></div>
@@ -120,23 +98,15 @@
     </div>
 
     <div id="result-zone">
-        <div id="capture-area" style="background: #fff5f8; padding: 10px 10px 20px 10px; border-radius: 20px;">
-            <h2 style="color: var(--sakura-dark); text-align: center; margin-top: 10px;">🌸 櫻坂46 推し排名 🌸</h2>
-            <div class="divider"></div>
-            <div id="rank-list" style="background: white; border-radius: 15px; overflow: hidden; border: 1px solid #ffe0eb;"></div>
-        </div>
-        
-        <div class="share-group">
-            <button class="share-btn btn-copy" onclick="copyTextResult()">複製文字</button>
-            <button class="share-btn btn-save" onclick="saveAsImage()">儲存圖片</button>
-        </div>
-        
+        <h2 style="color: var(--sakura-dark); text-align: center;">🌸 排序結果 🌸</h2>
+        <div class="divider"></div>
+        <div id="rank-list"></div>
+        <button class="copy-btn" onclick="copyResult()">📋 複製文字結果</button>
         <button class="restart-btn" onclick="location.reload()">重新開始</button>
     </div>
 </div>
 
 <script>
-    // 圖片與資料 (保持不變)
     const memberImages = {
         "上村莉菜": "https://static.wikia.nocookie.net/akb48/images/6/6c/Uemura_Rina_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161421",
         "尾関梨香": "https://static.wikia.nocookie.net/akb48/images/e/ed/Ozeki_Rika_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161323",
@@ -280,57 +250,32 @@
             list.innerHTML += `
                 <div class="rank-item">
                     <b>${i+1}</b>
-                    <img src="${imgUrl}" class="result-thumb" alt="${name}" crossorigin="anonymous">
+                    <img src="${imgUrl}" class="result-thumb" alt="${name}">
                     <span class="result-name">${name}</span>
                 </div>`;
         });
     }
 
-    // --- 分享功能實作 ---
-
-    // 1. 複製文字結果
-    function copyTextResult() {
+    // 複製功能實作
+    function copyResult() {
         const items = document.querySelectorAll('.rank-item');
         let text = "🌸 我的櫻坂46推し排名 🌸\n";
         items.forEach((item, index) => {
             const name = item.querySelector('.result-name').innerText;
-            text += `${index + 1}. ${name}\n`;
+            text += `第 ${index + 1} 名：${name}\n`;
         });
-        text += "\n來玩玩看吧： " + window.location.href;
+        text += "\n測驗網址： " + window.location.href;
 
+        // 使用較新的 API 進行複製
         navigator.clipboard.writeText(text).then(() => {
-            alert("已成功複製排名文字！");
-        }).catch(() => {
-            alert("複製失敗，請手動截圖分享");
-        });
-    }
-
-    // 2. 儲存圖片結果
-    function saveAsImage() {
-        const target = document.getElementById('capture-area');
-        const btn = document.querySelector('.btn-save');
-        const originalText = btn.innerText;
-        btn.innerText = "生成中...";
-
-        html2canvas(target, {
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: "#fff5f8",
-            scale: 2
-        }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `Sakurazaka46_Ranking.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            btn.innerText = originalText;
+            alert("已成功複製排名文字！快去貼給朋友看吧～");
         }).catch(err => {
-            console.error(err);
-            alert("圖片生成失敗，可能是瀏覽器限制，建議直接截圖。");
-            btn.innerText = originalText;
+            alert("複製失敗，請手動截圖分享");
         });
     }
 </script>
 </body>
 </html>
+
 
 
