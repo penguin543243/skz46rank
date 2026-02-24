@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>櫻坂46成員推し順位決定戰</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* 核心修正：全域設定盒模型，防止 padding 撐開寬度 */
+        /* 核心修正：全域設定盒模型 */
         * { box-sizing: border-box; }
 
         :root { --sakura: #f19ec2; --sakura-dark: #e0629b; --white: #ffffff; }
@@ -56,13 +57,20 @@
         .member-name { font-weight: bold; font-size: 1.2rem; word-break: break-all; }
         .vs-label { font-weight: 900; color: #eee; font-style: italic; font-size: 1.2rem; display: flex; align-items: center; }
 
-        /* 結果區修正：加入成員頭像樣式 */
+        /* 結果區與分享按鈕 */
         #result-zone { display: none; text-align: left; }
-        .rank-item { padding: 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px; }
+        .rank-item { padding: 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px; background: white; }
         .rank-item b { width: 30px; color: var(--sakura-dark); font-size: 1.1rem; text-align: center; }
         .result-thumb { width: 50px; height: 65px; object-fit: cover; border-radius: 6px; background: #f9f9f9; }
         .result-name { font-weight: bold; font-size: 1.1rem; }
-        .restart-btn { width: 100%; margin-top: 20px; padding: 15px; border: none; border-radius: 15px; background: #f0f0f0; color: #666; font-weight: bold; cursor: pointer; }
+        
+        .share-group { display: flex; gap: 10px; margin-top: 20px; }
+        .share-btn { flex: 1; padding: 15px; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-copy { background: #ffe0eb; color: #e0629b; }
+        .btn-save { background: var(--sakura-dark); color: white; }
+        .share-btn:active { transform: scale(0.95); }
+        
+        .restart-btn { width: 100%; margin-top: 10px; padding: 15px; border: none; border-radius: 15px; background: #f0f0f0; color: #666; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -112,38 +120,46 @@
     </div>
 
     <div id="result-zone">
-        <h2 style="color: var(--sakura-dark); text-align: center;">🌸 排序結果 🌸</h2>
-        <div class="divider"></div>
-        <div id="rank-list"></div>
+        <div id="capture-area" style="background: #fff5f8; padding: 10px 10px 20px 10px; border-radius: 20px;">
+            <h2 style="color: var(--sakura-dark); text-align: center; margin-top: 10px;">🌸 櫻坂46 推し排名 🌸</h2>
+            <div class="divider"></div>
+            <div id="rank-list" style="background: white; border-radius: 15px; overflow: hidden; border: 1px solid #ffe0eb;"></div>
+        </div>
+        
+        <div class="share-group">
+            <button class="share-btn btn-copy" onclick="copyTextResult()">複製文字</button>
+            <button class="share-btn btn-save" onclick="saveAsImage()">儲存圖片</button>
+        </div>
+        
         <button class="restart-btn" onclick="location.reload()">重新開始</button>
     </div>
 </div>
 
 <script>
-    // 圖片網址資料
+    // 圖片與資料 (保持不變)
     const memberImages = {
-        "上村莉菜": "https://static.wikia.nocookie.net/akb48/images/6/6c/Uemura_Rina_S46_1st.jpg",
-        "尾関梨香": "https://static.wikia.nocookie.net/akb48/images/e/ed/Ozeki_Rika_S46_1st.jpg",
-        "小池美波": "https://static.wikia.nocookie.net/akb48/images/3/34/Koike_Minami_S46_1st.jpg",
-        "小林由依": "https://static.wikia.nocookie.net/akb48/images/6/67/Kobayashi_Yui_S46_1st.jpg",
-        "齋藤冬優花": "https://static.wikia.nocookie.net/akb48/images/6/6f/Saito_Fuyuka_S46_1st.jpg",
-        "菅井友香": "https://static.wikia.nocookie.net/akb48/images/e/ee/Sugai_Yuuka_S46_1st.jpg",
-        "土生瑞穂": "https://static.wikia.nocookie.net/akb48/images/8/83/Habu_Mizuho_S46_1st.jpg",
-        "原田葵": "https://static.wikia.nocookie.net/akb48/images/9/94/Harada_Aoi_S46_1st.jpg",
-        "守屋茜": "https://static.wikia.nocookie.net/akb48/images/9/9e/Moriya_Akane_S46_1st.jpg",
-        "渡辺梨加": "https://static.wikia.nocookie.net/akb48/images/9/9f/Watanabe_Rika_S46_1st.jpg",
-        "渡邉理佐": "https://static.wikia.nocookie.net/akb48/images/7/7e/Watanabe_Risa_S46_1st.jpg",
+        "上村莉菜": "https://static.wikia.nocookie.net/akb48/images/6/6c/Uemura_Rina_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161421",
+        "尾関梨香": "https://static.wikia.nocookie.net/akb48/images/e/ed/Ozeki_Rika_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161323",
+        "小池美波": "https://static.wikia.nocookie.net/akb48/images/3/34/Koike_Minami_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161225",
+        "小林由依": "https://static.wikia.nocookie.net/akb48/images/6/67/Kobayashi_Yui_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161156",
+        "齋藤冬優花": "https://static.wikia.nocookie.net/akb48/images/6/6f/Saito_Fuyuka_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161343",
+        "菅井友香": "https://static.wikia.nocookie.net/akb48/images/e/ee/Sugai_Yuuka_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161354",
+        "土生瑞穂": "https://static.wikia.nocookie.net/akb48/images/8/83/Habu_Mizuho_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161139",
+        "原田葵": "https://static.wikia.nocookie.net/akb48/images/9/94/Harada_Aoi_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161145",
+        "守屋茜": "https://static.wikia.nocookie.net/akb48/images/9/9e/Moriya_Akane_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161304",
+        "渡辺梨加": "https://static.wikia.nocookie.net/akb48/images/9/9f/Watanabe_Rika_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161425",
+        "渡邉理佐": "https://static.wikia.nocookie.net/akb48/images/7/7e/Watanabe_Risa_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161429",
         "井上梨名": "https://sakurazaka46.com/images/14/381/072f076deebeffbbaf22a1038b2cb/400_320_102400.jpg",
         "遠藤光莉": "https://sakurazaka46.com/images/14/857/d0120b9769f3d70674079f22bfb93/400_320_102400.jpg",
         "大園玲": "https://sakurazaka46.com/images/14/24b/9ec4f53fd6bdff10e11184718fdc6/400_320_102400.jpg",
         "大沼晶保": "https://sakurazaka46.com/images/14/12f/8c6160d77812688b7e5f29b89119c/400_320_102400.jpg",
         "幸阪茉里乃": "https://sakurazaka46.com/images/14/2f9/1e452e7822839ea7c313a6f72beca/400_320_102400.jpg",
-        "関有美子": "https://static.wikia.nocookie.net/akb48/images/5/5d/Seki_Yumiko_S46_1st.jpg",
+        "關有美子": "https://static.wikia.nocookie.net/akb48/images/5/5d/Seki_Yumiko_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161348",
         "武元唯衣": "https://sakurazaka46.com/images/14/fde/33bda495de83cc021bc791ee1f815/400_320_102400.jpg",
         "田村保乃": "https://sakurazaka46.com/images/14/d78/15b07c7fcfa61ee38717e3ead9190/400_320_102400.jpg",
         "藤吉夏鈴": "https://sakurazaka46.com/images/14/ac8/bdf305ca6fe3150253309e3162b38/400_320_102400.jpg",
-        "増本綺良": "https://sakurazaka46.com/images/14/b0b/6c435985fee683a63a4e111d08c66/400_320_102400.jpg",
-        "松平璃子": "https://static.wikia.nocookie.net/akb48/images/2/2d/Matsudaira_Riko_S46_1st.jpg",
+        "增本綺良": "https://sakurazaka46.com/images/14/b0b/6c435985fee683a63a4e111d08c66/400_320_102400.jpg",
+        "松平璃子": "https://static.wikia.nocookie.net/akb48/images/2/2d/Matsudaira_Riko_S46_1st.jpg/revision/latest/scale-to-width-down/1000?cb=20201013161246",
         "松田里奈": "https://sakurazaka46.com/images/14/751/48de20a8332db5f761ac1277f5e55/400_320_102400.jpg",
         "森田ひかる": "https://sakurazaka46.com/images/14/653/60ba6e0df07c5a0f5dedf11db6186/400_320_102400.jpg",
         "守屋麗奈": "https://sakurazaka46.com/images/14/ca6/ea887c53d101dcd1ec2154334e1b1/400_320_102400.jpg",
@@ -159,25 +175,25 @@
         "村井優": "https://sakurazaka46.com/images/14/f66/d3ee063660b09ae19c9ae6faddb3b/400_320_102400.jpg",
         "村山美羽": "https://sakurazaka46.com/images/14/8cd/9eae10b884ede12c4445a0958b70f/400_320_102400.jpg",
         "山下瞳月": "https://sakurazaka46.com/images/14/f38/3108b02a46500ce0d6093234a2dc0/400_320_102400.jpg",
-        "浅井恋乃未": "https://sakurazaka46.com/images/14/571/5f8ff9c3868beec870183b2d31c3a/400_320_102400.jpg",
+        "淺井戀乃未": "https://sakurazaka46.com/images/14/571/5f8ff9c3868beec870183b2d31c3a/400_320_102400.jpg",
         "稲熊ひな": "https://sakurazaka46.com/images/14/399/dd195ad9a0d52b851a86c1dedbf6c/400_320_102400.jpg",
         "勝又春": "https://sakurazaka46.com/images/14/d1b/9c4d1ed47ac4c11e75c9eb9627a2a/400_320_102400.jpg",
         "佐藤愛桜": "https://sakurazaka46.com/images/14/73f/cb69cae91954986017e139dabeef4/400_320_102400.jpg",
         "中川智尋": "https://sakurazaka46.com/images/14/eeb/7f18c42636b09a6d7d497071a549f/400_320_102400.jpg",
         "松本和子": "https://sakurazaka46.com/images/14/ecc/679134dea971e03bce13c7f41f82e/400_320_102400.jpg",
-        "目黒陽色": "https://sakurazaka46.com/images/14/343/e99d35233cec8a3d6aeaaf71e598e/400_320_102400.jpg",
+        "目黑陽色": "https://sakurazaka46.com/images/14/343/e99d35233cec8a3d6aeaaf71e598e/400_320_102400.jpg",
         "山川宇衣": "https://sakurazaka46.com/images/14/c45/b723790606854ed9be6119727ea7e/400_320_102400.jpg",
-        "山田桃実": "https://sakurazaka46.com/images/14/3f0/982a8a5790f0825271e4224658219/400_320_102400.jpg"
+        "山田桃實": "https://sakurazaka46.com/images/14/3f0/982a8a5790f0825271e4224658219/400_320_102400.jpg"
     };
 
     const memberData = {
         "1": ["上村莉菜", "尾関梨香", "小池美波", "小林由依", "齋藤冬優花", "菅井友香", "土生瑞穂", "原田葵", "守屋茜", "渡辺梨加", "渡邉理佐"],
-        "2": ["井上梨名", "遠藤光莉", "大園玲", "大沼晶保", "幸阪茉里乃", "関有美子", "武元唯衣", "田村保乃", "藤吉夏鈴", "増本綺良", "松平璃子", "松田里奈", "森田ひかる", "守屋麗奈", "山﨑天"],
+        "2": ["井上梨名", "遠藤光莉", "大園玲", "大沼晶保", "幸阪茉里乃", "關有美子", "武元唯衣", "田村保乃", "藤吉夏鈴", "增本綺良", "松平璃子", "松田里奈", "森田ひかる", "守屋麗奈", "山﨑天"],
         "3": ["石森璃花", "遠藤理子", "小田倉麗奈", "小島凪紗", "谷口愛季", "中嶋優月", "的野美青", "向井純葉", "村井優", "村山美羽", "山下瞳月"],
-        "4": ["浅井恋乃未", "稲熊ひな", "勝又春", "佐藤愛桜", "中川智尋", "松本和子", "目黒陽色", "山川宇衣", "山田桃実"]
+        "4": ["淺井戀乃未", "稲熊ひな", "勝又春", "佐藤愛桜", "中川智尋", "松本和子", "目黑陽色", "山川宇衣", "山田桃實"]
     };
 
-    const activeNames = ["井上梨名", "遠藤光莉", "大園玲", "大沼晶保", "幸阪茉里乃", "武元唯衣", "田村保乃", "藤吉夏鈴", "増本綺良", "松田里奈", "森田ひかる", "守屋麗奈", "山﨑天", "石森璃花", "遠藤理子", "小田倉麗奈", "小島凪紗", "谷口愛季", "中嶋優月", "的野美青", "向井純葉", "村井優", "村山美羽", "山下瞳月", "浅井恋乃未", "稲熊ひな", "勝又春", "佐藤愛桜", "中川智尋", "松本和子", "目黒陽色", "山川宇衣", "山田桃実"];
+    const activeNames = ["井上梨名", "遠藤光莉", "大園玲", "大沼晶保", "幸阪茉里乃", "武元唯衣", "田村保乃", "藤吉夏鈴", "增本綺良", "松田里奈", "森田ひかる", "守屋麗奈", "山﨑天", "石森璃花", "遠藤理子", "小田倉麗奈", "小島凪紗", "谷口愛季", "中嶋優月", "的野美青", "向井純葉", "村井優", "村山美羽", "山下瞳月", "淺井戀乃未", "稲熊ひな", "勝又春", "佐藤愛桜", "中川智尋", "松本和子", "目黑陽色", "山川宇衣", "山田桃實"];
 
     let activeMembers = [], resolveFunc, totalComparisons = 0;
 
@@ -246,39 +262,75 @@
         document.getElementById('bar').style.width = Math.min((totalComparisons / est) * 100, 95) + "%";
         document.getElementById('opt-a').innerText = a;
         document.getElementById('opt-b').innerText = b;
-        
-        const imgA = document.getElementById('img-a');
-        const imgB = document.getElementById('img-b');
-        
-        if (memberImages[a]) { imgA.src = memberImages[a]; imgA.style.display = "block"; } 
-        else { imgA.style.display = "none"; }
-
-        if (memberImages[b]) { imgB.src = memberImages[b]; imgB.style.display = "block"; } 
-        else { imgB.style.display = "none"; }
-        
+        const imgA = document.getElementById('img-a'), imgB = document.getElementById('img-b');
+        if (memberImages[a]) { imgA.src = memberImages[a]; imgA.style.display = "block"; } else { imgA.style.display = "none"; }
+        if (memberImages[b]) { imgB.src = memberImages[b]; imgB.style.display = "block"; } else { imgB.style.display = "none"; }
         return new Promise(res => resolveFunc = res);
     }
 
     function submit(c) { resolveFunc(c); }
 
-    // 修正後的結果顯示函式
     function showResults(sorted) {
         document.getElementById('battle-zone').style.display = 'none';
         document.getElementById('result-zone').style.display = 'block';
         const list = document.getElementById('rank-list');
-        list.innerHTML = ""; // 清空舊內容
-        
+        list.innerHTML = "";
         sorted.forEach((name, i) => {
-            const imgUrl = memberImages[name] || ""; // 取得圖片
+            const imgUrl = memberImages[name] || "";
             list.innerHTML += `
                 <div class="rank-item">
                     <b>${i+1}</b>
-                    <img src="${imgUrl}" class="result-thumb" alt="${name}" onerror="this.style.display='none'">
+                    <img src="${imgUrl}" class="result-thumb" alt="${name}" crossorigin="anonymous">
                     <span class="result-name">${name}</span>
                 </div>`;
+        });
+    }
+
+    // --- 分享功能實作 ---
+
+    // 1. 複製文字結果
+    function copyTextResult() {
+        const items = document.querySelectorAll('.rank-item');
+        let text = "🌸 我的櫻坂46推し排名 🌸\n";
+        items.forEach((item, index) => {
+            const name = item.querySelector('.result-name').innerText;
+            text += `${index + 1}. ${name}\n`;
+        });
+        text += "\n來玩玩看吧： " + window.location.href;
+
+        navigator.clipboard.writeText(text).then(() => {
+            alert("已成功複製排名文字！");
+        }).catch(() => {
+            alert("複製失敗，請手動截圖分享");
+        });
+    }
+
+    // 2. 儲存圖片結果
+    function saveAsImage() {
+        const target = document.getElementById('capture-area');
+        const btn = document.querySelector('.btn-save');
+        const originalText = btn.innerText;
+        btn.innerText = "生成中...";
+
+        html2canvas(target, {
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#fff5f8",
+            scale: 2
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Sakurazaka46_Ranking.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            btn.innerText = originalText;
+        }).catch(err => {
+            console.error(err);
+            alert("圖片生成失敗，可能是瀏覽器限制，建議直接截圖。");
+            btn.innerText = originalText;
         });
     }
 </script>
 </body>
 </html>
+
 
