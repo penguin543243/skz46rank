@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>櫻坂46成員推し順位決定戰</title>
+    <style>
+        /* 核心修正：全域設定盒模型，防止 padding 撐開寬度 */
+        * { box-sizing: border-box; }
+
+        :root { --sakura: #f19ec2; --sakura-dark: #e0629b; --white: #ffffff; }
+        body { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang TC", "Microsoft JhengHei", sans-serif; background: #fff5f8; display: flex; justify-content: center; padding: 20px; color: #444; }
+        .container { max-width: 550px; width: 100%; background: var(--white); padding: 40px 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(224, 98, 155, 0.2); text-align: center; }
+        
+        .main-title { color: var(--sakura-dark); font-size: 1.8rem; font-weight: 900; margin-bottom: 10px; }
+        .divider { width: 50px; height: 4px; background: var(--sakura); margin: 20px auto; border-radius: 2px; }
+        
+        /* 快速選擇按鈕 */
+        .quick-select-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px; }
+        .q-btn { font-size: 0.75rem; padding: 6px 12px; border: 1px solid var(--sakura); color: var(--sakura-dark); border-radius: 20px; cursor: pointer; background: white; transition: 0.2s; }
+        .q-btn:hover { background: var(--sakura); color: white; }
+        .q-btn.active-status { border-color: #ff4d94; color: #ff4d94; font-weight: bold; }
+        .q-btn.clear { border-color: #ccc; color: #888; }
+
+        /* 選擇區 */
+        .selection-zone { text-align: left; margin-bottom: 25px; background: #fefefe; border: 1px solid #eee; border-radius: 15px; padding: 15px; max-height: 350px; overflow-y: auto; }
+        .gen-title { font-size: 0.85rem; font-weight: bold; color: #aaa; margin: 15px 0 8px 5px; border-bottom: 1px dashed #eee; padding-bottom: 3px; }
+        .member-checkbox { display: inline-flex; align-items: center; width: 45%; margin: 5px 2%; cursor: pointer; font-size: 0.9rem; }
+        .member-checkbox input { margin-right: 8px; accent-color: var(--sakura-dark); }
+
+        /* 模式按鈕 */
+        .menu-btn { width: 100%; padding: 20px; margin: 10px 0; border: 2px solid #f0f0f0; border-radius: 15px; cursor: pointer; background: white; transition: 0.3s; text-align: left; }
+        .menu-btn:hover { border-color: var(--sakura); background: #fff9fb; transform: translateY(-2px); }
+        .menu-btn h3 { margin: 0; color: var(--sakura-dark); font-size: 1.1rem; }
+        .menu-btn p { margin: 5px 0 0; font-size: 0.8rem; color: #888; }
+
+        /* 對決區 */
+        #battle-zone { display: none; }
+        .progress-text { font-size: 0.85rem; color: #999; margin-bottom: 12px; }
+        .bar-bg { width: 100%; height: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 35px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--sakura); width: 0%; transition: 0.4s; }
+        
+        .cards { display: flex; gap: 15px; align-items: stretch; justify-content: center; }
+        .card { 
+            flex: 1; padding: 15px; border: 2px solid #f5f5f5; border-radius: 20px; 
+            cursor: pointer; background: #fff; transition: all 0.2s; 
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            min-width: 0;
+        }
+        .card:hover { border-color: var(--sakura); transform: scale(1.03); color: var(--sakura-dark); }
+        .member-img { 
+            width: 100%; aspect-ratio: 3/4; background: #f9f9f9; border-radius: 12px; 
+            margin-bottom: 15px; object-fit: cover; display: none; 
+        }
+        .member-name { font-weight: bold; font-size: 1.2rem; word-break: break-all; }
+        .vs-label { font-weight: 900; color: #eee; font-style: italic; font-size: 1.2rem; display: flex; align-items: center; }
+
+        /* 結果區修正：加入成員頭像樣式 */
+        #result-zone { display: none; text-align: left; }
+        .rank-item { padding: 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px; }
+        .rank-item b { width: 30px; color: var(--sakura-dark); font-size: 1.1rem; text-align: center; }
+        .result-thumb { width: 50px; height: 65px; object-fit: cover; border-radius: 6px; background: #f9f9f9; }
+        .result-name { font-weight: bold; font-size: 1.1rem; }
+        .restart-btn { width: 100%; margin-top: 20px; padding: 15px; border: none; border-radius: 15px; background: #f0f0f0; color: #666; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="menu-zone">
+        <h1 class="main-title">櫻坂46成員<br>推し順位決定戰</h1>
+        <div class="divider"></div>
+        
+        <p style="font-size: 0.9rem; margin-bottom: 10px; color: #666;">① 挑選參與對決的成員：</p>
+        <div class="quick-select-group">
+            <div class="q-btn active-status" onclick="selectActiveOnly()"> 現役成員</div>
+            <div class="q-btn" onclick="selectGen('1')">一期生</div>
+            <div class="q-btn" onclick="selectGen('2')">二期生</div>
+            <div class="q-btn" onclick="selectGen('3')">三期生</div>
+            <div class="q-btn" onclick="selectGen('4')">四期生</div>
+            <div class="q-btn clear" onclick="selectGen('none')">全部取消</div>
+        </div>
+
+        <div class="selection-zone" id="member-selectors"></div>
+
+        <p style="font-size: 0.9rem; margin-bottom: 10px; color: #666;">② 選擇排序模式：</p>
+        <div class="menu-btn" onclick="startApp('full')">
+            <h3>完美主義模式</h3>
+            <p>排出精確的完整排名 (適合人數較少時)</p>
+        </div>
+        <div class="menu-btn" onclick="startApp('top10')">
+            <h3>神速模式</h3>
+            <p>只排出前 10 名 (推薦全員參與時使用)</p>
+        </div>
+    </div>
+
+    <div id="battle-zone">
+        <div class="progress-text" id="info">準備中...</div>
+        <div class="bar-bg"><div class="bar-fill" id="bar"></div></div>
+        <div class="cards">
+            <div class="card" onclick="submit(0)">
+                <img id="img-a" class="member-img" src="" alt="">
+                <div id="opt-a" class="member-name"></div>
+            </div>
+            <div class="vs-label">VS</div>
+            <div class="card" onclick="submit(1)">
+                <img id="img-b" class="member-img" src="" alt="">
+                <div id="opt-b" class="member-name"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-zone">
+        <h2 style="color: var(--sakura-dark); text-align: center;">🌸 排序結果 🌸</h2>
+        <div class="divider"></div>
+        <div id="rank-list"></div>
+        <button class="restart-btn" onclick="location.reload()">重新開始</button>
+    </div>
+</div>
+
+<script>
+    // 圖片網址資料
+    const memberImages = {
+        "上村莉菜": "https://static.wikia.nocookie.net/akb48/images/6/6c/Uemura_Rina_S46_1st.jpg",
+        "尾関梨香": "https://static.wikia.nocookie.net/akb48/images/e/ed/Ozeki_Rika_S46_1st.jpg",
+        "小池美波": "https://static.wikia.nocookie.net/akb48/images/3/34/Koike_Minami_S46_1st.jpg",
+        "小林由依": "https://static.wikia.nocookie.net/akb48/images/6/67/Kobayashi_Yui_S46_1st.jpg",
+        "齋藤冬優花": "https://static.wikia.nocookie.net/akb48/images/6/6f/Saito_Fuyuka_S46_1st.jpg",
+        "菅井友香": "https://static.wikia.nocookie.net/akb48/images/e/ee/Sugai_Yuuka_S46_1st.jpg",
+        "土生瑞穂": "https://static.wikia.nocookie.net/akb48/images/8/83/Habu_Mizuho_S46_1st.jpg",
+        "原田葵": "https://static.wikia.nocookie.net/akb48/images/9/94/Harada_Aoi_S46_1st.jpg",
+        "守屋茜": "https://static.wikia.nocookie.net/akb48/images/9/9e/Moriya_Akane_S46_1st.jpg",
+        "渡辺梨加": "https://static.wikia.nocookie.net/akb48/images/9/9f/Watanabe_Rika_S46_1st.jpg",
+        "渡邉理佐": "https://static.wikia.nocookie.net/akb48/images/7/7e/Watanabe_Risa_S46_1st.jpg",
+        "井上梨名": "https://sakurazaka46.com/images/14/381/072f076deebeffbbaf22a1038b2cb/400_320_102400.jpg",
+        "遠藤光莉": "https://sakurazaka46.com/images/14/857/d0120b9769f3d70674079f22bfb93/400_320_102400.jpg",
+        "大園玲": "https://sakurazaka46.com/images/14/24b/9ec4f53fd6bdff10e11184718fdc6/400_320_102400.jpg",
+        "大沼晶保": "https://sakurazaka46.com/images/14/12f/8c6160d77812688b7e5f29b89119c/400_320_102400.jpg",
+        "幸阪茉里乃": "https://sakurazaka46.com/images/14/2f9/1e452e7822839ea7c313a6f72beca/400_320_102400.jpg",
+        "関有美子": "https://static.wikia.nocookie.net/akb48/images/5/5d/Seki_Yumiko_S46_1st.jpg",
+        "武元唯衣": "https://sakurazaka46.com/images/14/fde/33bda495de83cc021bc791ee1f815/400_320_102400.jpg",
+        "田村保乃": "https://sakurazaka46.com/images/14/d78/15b07c7fcfa61ee38717e3ead9190/400_320_102400.jpg",
+        "藤吉夏鈴": "https://sakurazaka46.com/images/14/ac8/bdf305ca6fe3150253309e3162b38/400_320_102400.jpg",
+        "増本綺良": "https://sakurazaka46.com/images/14/b0b/6c435985fee683a63a4e111d08c66/400_320_102400.jpg",
+        "松平璃子": "https://static.wikia.nocookie.net/akb48/images/2/2d/Matsudaira_Riko_S46_1st.jpg",
+        "松田里奈": "https://sakurazaka46.com/images/14/751/48de20a8332db5f761ac1277f5e55/400_320_102400.jpg",
+        "森田ひかる": "https://sakurazaka46.com/images/14/653/60ba6e0df07c5a0f5dedf11db6186/400_320_102400.jpg",
+        "守屋麗奈": "https://sakurazaka46.com/images/14/ca6/ea887c53d101dcd1ec2154334e1b1/400_320_102400.jpg",
+        "山﨑天": "https://sakurazaka46.com/images/14/d79/76fa08f7e62c5b15ff4ba200ba199/400_320_102400.jpg",
+        "石森璃花": "https://sakurazaka46.com/images/14/cd8/11c3587bb87a5ddc9e4e63f941bf1/400_320_102400.jpg",
+        "遠藤理子": "https://sakurazaka46.com/images/14/b22/3713b6987a8e214d6fe5a57854634/400_320_102400.jpg",
+        "小田倉麗奈": "https://sakurazaka46.com/images/14/263/20608a9c45d8afddc128ae180ab71/400_320_102400.jpg",
+        "小島凪紗": "https://sakurazaka46.com/images/14/44a/4e7a8c8ab86faba15404dffa70f48/400_320_102400.jpg",
+        "谷口愛季": "https://sakurazaka46.com/images/14/025/cbcd2e8333953131b14d1e1b85ffe/400_320_102400.jpg",
+        "中嶋優月": "https://sakurazaka46.com/images/14/7e9/80345b3421394aac9b2ce72b0c6f5/400_320_102400.jpg",
+        "的野美青": "https://sakurazaka46.com/images/14/b8b/bfc2cd7717c347546f5d88dcc5521/400_320_102400.jpg",
+        "向井純葉": "https://sakurazaka46.com/images/14/e82/320adae04d6b88c9ec11f065b8d9e/400_320_102400.jpg",
+        "村井優": "https://sakurazaka46.com/images/14/f66/d3ee063660b09ae19c9ae6faddb3b/400_320_102400.jpg",
+        "村山美羽": "https://sakurazaka46.com/images/14/8cd/9eae10b884ede12c4445a0958b70f/400_320_102400.jpg",
+        "山下瞳月": "https://sakurazaka46.com/images/14/f38/3108b02a46500ce0d6093234a2dc0/400_320_102400.jpg",
+        "浅井恋乃未": "https://sakurazaka46.com/images/14/571/5f8ff9c3868beec870183b2d31c3a/400_320_102400.jpg",
+        "稲熊ひな": "https://sakurazaka46.com/images/14/399/dd195ad9a0d52b851a86c1dedbf6c/400_320_102400.jpg",
+        "勝又春": "https://sakurazaka46.com/images/14/d1b/9c4d1ed47ac4c11e75c9eb9627a2a/400_320_102400.jpg",
+        "佐藤愛桜": "https://sakurazaka46.com/images/14/73f/cb69cae91954986017e139dabeef4/400_320_102400.jpg",
+        "中川智尋": "https://sakurazaka46.com/images/14/eeb/7f18c42636b09a6d7d497071a549f/400_320_102400.jpg",
+        "松本和子": "https://sakurazaka46.com/images/14/ecc/679134dea971e03bce13c7f41f82e/400_320_102400.jpg",
+        "目黒陽色": "https://sakurazaka46.com/images/14/343/e99d35233cec8a3d6aeaaf71e598e/400_320_102400.jpg",
+        "山川宇衣": "https://sakurazaka46.com/images/14/c45/b723790606854ed9be6119727ea7e/400_320_102400.jpg",
+        "山田桃実": "https://sakurazaka46.com/images/14/3f0/982a8a5790f0825271e4224658219/400_320_102400.jpg"
+    };
+
+    const memberData = {
+        "1": ["上村莉菜", "尾関梨香", "小池美波", "小林由依", "齋藤冬優花", "菅井友香", "土生瑞穂", "原田葵", "守屋茜", "渡辺梨加", "渡邉理佐"],
+        "2": ["井上梨名", "遠藤光莉", "大園玲", "大沼晶保", "幸阪茉里乃", "関有美子", "武元唯衣", "田村保乃", "藤吉夏鈴", "増本綺良", "松平璃子", "松田里奈", "森田ひかる", "守屋麗奈", "山﨑天"],
+        "3": ["石森璃花", "遠藤理子", "小田倉麗奈", "小島凪紗", "谷口愛季", "中嶋優月", "的野美青", "向井純葉", "村井優", "村山美羽", "山下瞳月"],
+        "4": ["浅井恋乃未", "稲熊ひな", "勝又春", "佐藤愛桜", "中川智尋", "松本和子", "目黒陽色", "山川宇衣", "山田桃実"]
+    };
+
+    const activeNames = ["井上梨名", "遠藤光莉", "大園玲", "大沼晶保", "幸阪茉里乃", "武元唯衣", "田村保乃", "藤吉夏鈴", "増本綺良", "松田里奈", "森田ひかる", "守屋麗奈", "山﨑天", "石森璃花", "遠藤理子", "小田倉麗奈", "小島凪紗", "谷口愛季", "中嶋優月", "的野美青", "向井純葉", "村井優", "村山美羽", "山下瞳月", "浅井恋乃未", "稲熊ひな", "勝又春", "佐藤愛桜", "中川智尋", "松本和子", "目黒陽色", "山川宇衣", "山田桃実"];
+
+    let activeMembers = [], resolveFunc, totalComparisons = 0;
+
+    const selectors = document.getElementById('member-selectors');
+    ["1", "2", "3", "4"].forEach(gen => {
+        const title = document.createElement('div');
+        title.className = 'gen-title'; title.innerText = `${gen} 期生`;
+        selectors.appendChild(title);
+        memberData[gen].forEach(name => {
+            const label = document.createElement('label');
+            label.className = 'member-checkbox';
+            label.innerHTML = `<input type="checkbox" name="member" data-gen="${gen}" value="${name}" checked>${name}`;
+            selectors.appendChild(label);
+        });
+    });
+
+    function selectGen(gen) {
+        document.querySelectorAll('input[name="member"]').forEach(cb => {
+            if (gen === 'none') cb.checked = false;
+            else if (cb.getAttribute('data-gen') === gen) cb.checked = true;
+        });
+    }
+
+    function selectActiveOnly() {
+        document.querySelectorAll('input[name="member"]').forEach(cb => {
+            cb.checked = activeNames.includes(cb.value);
+        });
+    }
+
+    function startApp(modeType) {
+        activeMembers = Array.from(document.querySelectorAll('input[name="member"]:checked')).map(cb => cb.value);
+        if (activeMembers.length < 2) return alert("請至少選2人");
+        document.getElementById('menu-zone').style.display = 'none';
+        document.getElementById('battle-zone').style.display = 'block';
+        const shuffled = [...activeMembers].sort(() => Math.random() - 0.5);
+        if (modeType === 'full') mergeSort(shuffled).then(showResults);
+        else getTopN(shuffled, Math.min(10, activeMembers.length)).then(showResults);
+    }
+
+    async function mergeSort(arr) {
+        if (arr.length <= 1) return arr;
+        let mid = Math.floor(arr.length / 2);
+        return await merge(await mergeSort(arr.slice(0, mid)), await mergeSort(arr.slice(mid)));
+    }
+
+    async function merge(left, right) {
+        let res = [];
+        while (left.length && right.length) res.push((await ask(left[0], right[0])) === 0 ? left.shift() : right.shift());
+        return [...res, ...left, ...right];
+    }
+
+    async function getTopN(arr, n) {
+        let res = [], pool = [...arr];
+        for (let i = 0; i < n; i++) {
+            let best = 0;
+            for (let j = 1; j < pool.length; j++) if (await ask(pool[best], pool[j]) === 1) best = j;
+            res.push(pool.splice(best, 1)[0]);
+        }
+        return res;
+    }
+
+    function ask(a, b) {
+        totalComparisons++;
+        document.getElementById('info').innerText = `已對決 ${totalComparisons} 次`;
+        let est = activeMembers.length * 4;
+        document.getElementById('bar').style.width = Math.min((totalComparisons / est) * 100, 95) + "%";
+        document.getElementById('opt-a').innerText = a;
+        document.getElementById('opt-b').innerText = b;
+        
+        const imgA = document.getElementById('img-a');
+        const imgB = document.getElementById('img-b');
+        
+        if (memberImages[a]) { imgA.src = memberImages[a]; imgA.style.display = "block"; } 
+        else { imgA.style.display = "none"; }
+
+        if (memberImages[b]) { imgB.src = memberImages[b]; imgB.style.display = "block"; } 
+        else { imgB.style.display = "none"; }
+        
+        return new Promise(res => resolveFunc = res);
+    }
+
+    function submit(c) { resolveFunc(c); }
+
+    // 修正後的結果顯示函式
+    function showResults(sorted) {
+        document.getElementById('battle-zone').style.display = 'none';
+        document.getElementById('result-zone').style.display = 'block';
+        const list = document.getElementById('rank-list');
+        list.innerHTML = ""; // 清空舊內容
+        
+        sorted.forEach((name, i) => {
+            const imgUrl = memberImages[name] || ""; // 取得圖片
+            list.innerHTML += `
+                <div class="rank-item">
+                    <b>${i+1}</b>
+                    <img src="${imgUrl}" class="result-thumb" alt="${name}" onerror="this.style.display='none'">
+                    <span class="result-name">${name}</span>
+                </div>`;
+        });
+    }
+</script>
+</body>
+</html>
+
